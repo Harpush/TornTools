@@ -14,8 +14,8 @@ function storageReloadConnection(
 }
 
 @Feature({
-  id: '',
-  description: '',
+  id: 'feature-one',
+  description: 'Feature one',
   storageReloadConnection
 })
 export class FeatureOne implements FeatureHandler<FeatureOneStorageItems> {

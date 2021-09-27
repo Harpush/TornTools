@@ -1,4 +1,7 @@
-import { createElement } from '../dom';
+import { createElement } from '../../dom';
+
+// TODO: Import font awesome
+import './font-awesome-icon.css';
 
 export const createFontAwesomeIcon = (name: string) =>
   createElement({

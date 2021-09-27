@@ -1,7 +1,9 @@
-import { CustomElement } from './custom-elements/common';
-import { createFontAwesomeIcon } from './custom-elements/font-awesome-icon';
-import { createElement } from './dom';
-import { assertUnreachable } from './utils';
+import { CustomElement } from '../../custom-elements/common';
+import { createFontAwesomeIcon } from '../../custom-elements/font-awesome-icon/font-awesome-icon';
+import { createElement } from '../../dom';
+import { assertUnreachable } from '../../utils';
+
+import './features-info-popup.css';
 
 type FeatureStatus = 'active' | 'inactive' | 'failed';
 
@@ -44,20 +46,20 @@ export class FeaturesStatusPopup implements CustomElement {
   private renderedFeatures = new Map<string, FeatureEntryElement>();
   private featuresContentArea = createElement({
     type: 'div',
-    class: 'feature-status-content',
+    class: 'tt-features-status-content',
     children: []
   });
   public element = createElement({
     type: 'div',
-    class: 'features-status',
+    class: 'tt-features-status',
     children: [
       createElement({
         type: 'div',
-        class: 'features-status-header',
+        class: 'tt-features-status-header',
         children: [
           createElement({
             type: 'span',
-            children: ['TornTools features status']
+            children: ['TornTools features']
           }),
           createFontAwesomeIcon('caret-down')
         ]

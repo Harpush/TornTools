@@ -3,9 +3,9 @@
   "manifest_version": 2,
   "name": "TornTools",
   "version": "1.0.0",
-  "description": "Several tools for Torn.",
+  "description": "Several tools for Torn",
   "author": "",
-  "permissions": ["storage", "notifications", "tabs", "https://api.torn.com/"],
+  "permissions": ["storage"],
   "background": {
     "scripts": ["scripts/background.js"]
   },

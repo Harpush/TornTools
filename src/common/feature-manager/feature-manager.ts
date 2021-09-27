@@ -1,7 +1,7 @@
-import { FeatureConfig, FeatureHandler } from './feature-manager/feature';
-import { FeaturesStatusPopup } from './features-info-popup';
-import { getAllStorage, StorageModel } from './storage';
-import { log, Type } from './utils';
+import { FeatureConfig, FeatureHandler } from './feature';
+import { FeaturesStatusPopup } from './features-info-popup/features-info-popup';
+import { getAllStorage, StorageModel } from '../storage';
+import { log, Type } from '../utils';
 
 interface FeatureInfo {
   id: string;
