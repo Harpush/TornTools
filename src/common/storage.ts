@@ -39,6 +39,7 @@ const loadStorage = async () => {
 
 export const getAllStorage = async () => await loadStorage();
 
+// TODO: Listeners
 chrome.storage.onChanged.addListener((_changes, area) => {
   if (area !== 'local') {
     return;

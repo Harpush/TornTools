@@ -11,6 +11,9 @@ interface FeatureInfo {
   isInitialized: boolean;
 }
 
+/**
+ * Given a list of feature classes initialize them and handle their lifecycle
+ */
 export const bootstrapFeatures = async (
   features: Type<FeatureHandler<any>>[]
 ) => {

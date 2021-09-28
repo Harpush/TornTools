@@ -19,6 +19,7 @@ export interface FeatureHandler<T> {
    * Called on every changed in settingsItems which didn't
    * result in feature deactivate
    */
+  // TODO: Pass changes object instead ({changedKey: {oldValue, newValue}})
   storageConnectionChanged(settingsItems: T): void;
   /**
    * Cleanup logic when the feature became inactive
