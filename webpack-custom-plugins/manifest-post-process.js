@@ -7,7 +7,7 @@ class ManifestPostProcessPlugin {
       (compilation, callback) => {
         const manifestJson = JSON.parse(
           stripJsonComments(
-            compilation.assets['manifest.json'].source().toString()
+            compilation.assets['manifest.jsonc'].source().toString()
           )
         );
 
@@ -21,6 +21,8 @@ class ManifestPostProcessPlugin {
         manifestJson.content_scripts[0].exclude_matches = otherMatches;
 
         const newManifestJson = JSON.stringify(manifestJson, null, 2);
+
+        delete compilation.assets['manifest.jsonc'];
 
         compilation.assets['manifest.json'] = {
           source: () => newManifestJson,

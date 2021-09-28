@@ -21,9 +21,9 @@ module.exports = {
   plugins: [
     // Copies files as is to dist
     new CopyWebpackPlugin({
-      patterns: [{ from: './src/manifest.json' }]
+      patterns: [{ from: './src/manifest.jsonc' }]
     }),
-    // Alters manifest json dynamically
+    // Alters manifest json dynamically and strip comments
     new ManifestPostProcessPlugin()
   ],
   module: {
