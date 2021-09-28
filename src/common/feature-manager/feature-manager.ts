@@ -19,7 +19,8 @@ export const bootstrapFeatures = async (
 
   const port = chrome.runtime.connect({ name: 'status-check' });
   port.onDisconnect.addListener(() => {
-    for (const featureInfo of featuresInfo.values()) {
+    const values = Array.from(featuresInfo.values());
+    for (const featureInfo of values) {
       if (!featureInfo.isInitialized) {
         continue;
       }

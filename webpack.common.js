@@ -3,27 +3,33 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: {
+    // All pages index.ts here
     company: './src/pages/company/index.ts',
     background: './src/background.ts'
   },
   output: {
+    // Will output the js files to dist/scripts
     path: path.resolve(__dirname, 'dist'),
     filename: 'scripts/[name].js'
   },
   resolve: {
+    // Above will work only on ts files
     extensions: ['.ts']
   },
   plugins: [
+    // Copies files as is to dist
     new CopyWebpackPlugin({
       patterns: [{ from: './src/manifest.json' }]
     })
   ],
   module: {
     rules: [
+      // Compiles typescript
       { test: /\.ts?$/, loader: 'ts-loader' },
+      // Compiles SCSS and SASS and add dynamic style tags to body
       {
-        test: /\.css$/i,
-        use: ['style-loader', 'css-loader']
+        test: /\.(s(a|c)ss)$/,
+        use: ['style-loader', 'css-loader', 'sass-loader']
       }
     ]
   }

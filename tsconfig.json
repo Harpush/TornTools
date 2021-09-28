@@ -12,11 +12,9 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "downlevelIteration": true,
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "experimentalDecorators": true
   },
   "exclude": ["node_modules"],
   "include": ["src"]

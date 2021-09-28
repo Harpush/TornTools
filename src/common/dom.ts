@@ -1,5 +1,8 @@
-import { CustomElement } from './custom-elements/common';
+import { CustomElement } from './custom-elements/custom-element';
 
+/**
+ * Utility to help create dom elements in a more declarative way
+ */
 export const createElement = <T extends keyof HTMLElementTagNameMap>(options: {
   type: T;
   class?: string;

@@ -1,9 +1,9 @@
-import { CustomElement } from '../../custom-elements/common';
+import { CustomElement } from '../../custom-elements/custom-element';
 import { createFontAwesomeIcon } from '../../custom-elements/font-awesome-icon/font-awesome-icon';
 import { createElement } from '../../dom';
 import { assertUnreachable } from '../../utils';
 
-import './features-info-popup.css';
+import './features-info-popup.scss';
 
 type FeatureStatus = 'active' | 'inactive' | 'failed';
 
@@ -31,11 +31,11 @@ class FeatureEntryElement implements CustomElement {
 
   private createStatusElement(status: FeatureStatus): HTMLElement {
     if (status === 'active') {
-      return createFontAwesomeIcon('check');
+      return createFontAwesomeIcon('check', 'tt-active-feature');
     } else if (status === 'inactive') {
-      return createFontAwesomeIcon('times-circle');
+      return createFontAwesomeIcon('times-circle', 'tt-inactive-feature');
     } else if (status === 'failed') {
-      return createFontAwesomeIcon('times-circle');
+      return createFontAwesomeIcon('times-circle', 'tt-failed-feature');
     } else {
       return assertUnreachable(status);
     }
