@@ -1,13 +1,25 @@
-import { FeatureConfig, FeatureHandler } from './feature';
+import {
+  FeatureConfig,
+  FeatureHandler,
+  SettingItemsChanges,
+  SettingsItemsChange
+} from './feature';
 import { FeaturesStatusPopup } from './features-info-popup/features-info-popup';
-import { getAllStorage, StorageModel } from '../storage';
+import {
+  getStorageEntry,
+  onStorageChanged,
+  StorageKey,
+  StorageModel
+} from '../storage';
 import { log, Type } from '../utils';
 
 interface FeatureInfo {
   id: string;
   description: string;
-  storageReloadConnection: (storage: StorageModel) => unknown;
-  featureInstance: FeatureHandler<unknown>;
+  storageReloadConnection: (
+    storage: StorageModel[StorageKey.Settings]
+  ) => Record<string, any>;
+  featureInstance: FeatureHandler<Record<string, any>>;
   isInitialized: boolean;
 }
 
@@ -17,27 +29,8 @@ interface FeatureInfo {
 export const bootstrapFeatures = async (
   features: Type<FeatureHandler<any>>[]
 ) => {
-  const featuresInfo = new Map<string, FeatureInfo>();
+  const featuresInfoMap = new Map<string, FeatureInfo>();
   const featuresPopup = new FeaturesStatusPopup();
-
-  const port = chrome.runtime.connect({ name: 'status-check' });
-  port.onDisconnect.addListener(() => {
-    const values = Array.from(featuresInfo.values());
-    for (const featureInfo of values) {
-      if (!featureInfo.isInitialized) {
-        continue;
-      }
-
-      featureInfo.featureInstance.featureBecameInactive();
-      featuresPopup.updateFeatureStatus(featureInfo.id, 'inactive');
-
-      log(
-        '[TornTools] FeatureManager - Feature disabled on extension disconnect',
-        featureInfo.id,
-        featureInfo.description
-      );
-    }
-  });
 
   // TODO: reflect-metadata?
   const featureConfigSymbol = Symbol.for('tt:feature-config');
@@ -46,9 +39,9 @@ export const bootstrapFeatures = async (
     // TODO: reflect-metadata?
     const featureConfig = (feature as any)[
       featureConfigSymbol
-    ] as FeatureConfig<any>;
+    ] as FeatureConfig<Record<string, any>>;
 
-    if (featuresInfo.has(featureConfig.id)) {
+    if (featuresInfoMap.has(featureConfig.id)) {
       throw new Error(
         `[Error][TornTools] Feature with id ${featureConfig.id} is already registered!`
       );
@@ -56,7 +49,7 @@ export const bootstrapFeatures = async (
 
     const featureInstance = new feature();
 
-    featuresInfo.set(featureConfig.id, {
+    featuresInfoMap.set(featureConfig.id, {
       id: featureConfig.id,
       description: featureConfig.description,
       storageReloadConnection: featureConfig.storageReloadConnection,
@@ -73,10 +66,10 @@ export const bootstrapFeatures = async (
     );
 
     // TODO: try catch
-    const storageModel = await getAllStorage();
+    const settingsModel = await getStorageEntry(StorageKey.Settings);
 
     const featureStorageOptions =
-      featureConfig.storageReloadConnection(storageModel);
+      featureConfig.storageReloadConnection(settingsModel);
 
     const isActive = featureInstance.isFeatureActiveFromStorage(
       featureStorageOptions
@@ -84,7 +77,7 @@ export const bootstrapFeatures = async (
 
     if (isActive) {
       featureInstance.firstLoad(featureStorageOptions);
-      featuresInfo.get(featureConfig.id)!.isInitialized = true;
+      featuresInfoMap.get(featureConfig.id)!.isInitialized = true;
       featuresPopup.updateFeatureStatus(featureConfig.id, 'active');
 
       log(
@@ -93,39 +86,91 @@ export const bootstrapFeatures = async (
         featureConfig.description
       );
     }
-
-    // onStorageChanged(newStorage => {
-    //   for (const featureInfo of featuresInfo.values()) {
-    //     const featureStorageOptions = featureInfo.storageReloadConnection(newStorage);
-    //     // Dirty check
-    //     const isActive = featureInstance.isFeatureActiveFromStorage(
-    //       featureStorageOptions
-    //     );
-
-    //     if (isActive) {
-    //       featureInfo.featureInstance.storageConnectionChanged(featureStorageOptions);
-    //       featuresInfo.get(featureConfig.id)!.isInitialized = true;
-    //       featuresPopup.updateFeatureStatus(featureConfig.id, 'active');
-
-    //       log(
-    //         '[TornTools] FeatureManager - Feature updated from storage',
-    //         featureConfig.id,
-    //         featureConfig.description
-    //       );
-    //     } else if (featureInfo.isInitialized) {
-    //       featureInfo.featureInstance.featureBecameInactive();
-    //       featuresInfo.get(featureConfig.id)!.isInitialized = false;
-    //       featuresPopup.updateFeatureStatus(featureConfig.id, 'inactive');
-
-    //       log(
-    //         '[TornTools] FeatureManager - Feature disabled from storage',
-    //         featureConfig.id,
-    //         featureConfig.description
-    //       );
-    //     }
-    //   }
-    // });
   }
+
+  onStorageChanged(StorageKey.Settings, (oldSettings, newSettings) => {
+    const featuresInfo = Array.from(featuresInfoMap.values());
+
+    for (const featureInfo of featuresInfo) {
+      const oldFeatureStorageOptions =
+        featureInfo.storageReloadConnection(oldSettings);
+      const newFeatureStorageOptions =
+        featureInfo.storageReloadConnection(newSettings);
+
+      const changes: SettingItemsChanges<Record<string, any>> = {};
+
+      for (const key in newFeatureStorageOptions) {
+        if (newFeatureStorageOptions[key] !== oldFeatureStorageOptions[key]) {
+          const change: SettingsItemsChange<any> = {
+            previousValue: oldFeatureStorageOptions[key],
+            currentValue: newFeatureStorageOptions[key]
+          };
+
+          changes[key] = change;
+        }
+      }
+
+      if (!Object.keys(changes).length) {
+        // If not change there is nothing to do in this feature
+        continue;
+      }
+
+      const isActive = featureInfo.featureInstance.isFeatureActiveFromStorage(
+        newFeatureStorageOptions
+      );
+
+      if (isActive) {
+        featureInfo.featureInstance.storageConnectionChanged(changes);
+
+        if (!featureInfo.isInitialized) {
+          featureInfo.isInitialized = true;
+          featuresPopup.updateFeatureStatus(featureInfo.id, 'active');
+
+          log(
+            '[TornTools] FeatureManager - Feature reinitialized from storage',
+            featureInfo.id,
+            featureInfo.description
+          );
+        } else {
+          log(
+            '[TornTools] FeatureManager - Feature updated from storage',
+            featureInfo.id,
+            featureInfo.description
+          );
+        }
+      } else if (featureInfo.isInitialized) {
+        featureInfo.featureInstance.featureBecameInactive();
+        featureInfo.isInitialized = false;
+        featuresPopup.updateFeatureStatus(featureInfo.id, 'inactive');
+
+        log(
+          '[TornTools] FeatureManager - Feature disabled from storage',
+          featureInfo.id,
+          featureInfo.description
+        );
+      }
+    }
+  });
+
+  const port = chrome.runtime.connect({ name: 'status-check' });
+  port.onDisconnect.addListener(() => {
+    const featuresInfo = Array.from(featuresInfoMap.values());
+
+    for (const featureInfo of featuresInfo) {
+      if (!featureInfo.isInitialized) {
+        continue;
+      }
+
+      featureInfo.featureInstance.featureBecameInactive();
+      featuresPopup.updateFeatureStatus(featureInfo.id, 'inactive');
+
+      log(
+        '[TornTools] FeatureManager - Feature disabled on extension disconnect',
+        featureInfo.id,
+        featureInfo.description
+      );
+    }
+  });
 
   document.body.appendChild(featuresPopup.element);
 };

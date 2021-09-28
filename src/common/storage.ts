@@ -1,5 +1,14 @@
+export enum StorageKey {
+  Settings = 'settings'
+}
+
+const storageKeys = Object.values(StorageKey);
+
+const isStorageKey = (key: string): key is StorageKey =>
+  storageKeys.some(storageKey => storageKey === key);
+
 export interface StorageModel {
-  settings: {
+  [StorageKey.Settings]: {
     pages: {
       company: {
         myCompanyLastAction: boolean;
@@ -9,7 +18,7 @@ export interface StorageModel {
 }
 
 const defaultStorage: StorageModel = {
-  settings: {
+  [StorageKey.Settings]: {
     pages: {
       company: {
         myCompanyLastAction: true
@@ -30,6 +39,7 @@ const loadStorage = async () => {
   );
 
   if (!chromeStorage || !Object.keys(chromeStorage).length) {
+    // TODO: Any reason to set default?
     await chrome.storage.local.set(defaultStorage);
     return (currentStorage = defaultStorage);
   }
@@ -37,65 +47,54 @@ const loadStorage = async () => {
   return (currentStorage = chromeStorage);
 };
 
-export const getAllStorage = async () => await loadStorage();
+export const getStorageEntry = async <T extends StorageKey>(
+  storageKey: T
+): Promise<StorageModel[T]> => {
+  const storage = await loadStorage();
+  return storage[storageKey];
+};
 
-// TODO: Listeners
-chrome.storage.onChanged.addListener((_changes, area) => {
+type StorageListenerCallback<T extends StorageKey = StorageKey> = (
+  oldStorageEntry: StorageModel[T],
+  newStorageEntry: StorageModel[T]
+) => void;
+
+const storageListeners: {
+  [P in StorageKey]?: StorageListenerCallback<P>[];
+} = {};
+
+export const onStorageChanged = <T extends StorageKey>(
+  storageKey: T,
+  callback: StorageListenerCallback<T>
+): void => {
+  const storageEntryListeners = storageListeners[storageKey];
+
+  if (!storageEntryListeners) {
+    storageListeners[storageKey] = [callback as StorageListenerCallback];
+  } else {
+    storageEntryListeners.push(callback as StorageListenerCallback);
+  }
+};
+
+chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') {
     return;
   }
 
-  // for (const key in changes) {
-  //   switch (key) {
-  //     case 'settings':
-  //       settings = changes.settings.newValue;
-  //       break;
-  //     case 'filters':
-  //       filters = changes.filters.newValue;
-  //       break;
-  //     case 'version':
-  //       version = changes.version.newValue;
-  //       break;
-  //     case 'userdata':
-  //       userdata = changes.userdata.newValue;
-  //       break;
-  //     case 'api':
-  //       api = changes.api.newValue;
-  //       break;
-  //     case 'torndata':
-  //       torndata = changes.torndata.newValue;
-  //       break;
-  //     case 'stakeouts':
-  //       stakeouts = changes.stakeouts.newValue;
-  //       break;
-  //     case 'attackHistory':
-  //       attackHistory = changes.attackHistory.newValue;
-  //       break;
-  //     case 'notes':
-  //       notes = changes.notes.newValue;
-  //       break;
-  //     case 'factiondata':
-  //       factiondata = changes.factiondata.newValue;
-  //       break;
-  //     case 'quick':
-  //       quick = changes.quick.newValue;
-  //       break;
-  //     case 'localdata':
-  //       localdata = changes.localdata.newValue;
-  //       break;
-  //     case 'cache':
-  //       ttCache.cache = changes.cache.newValue;
-  //       break;
-  //     case 'usage':
-  //       ttCache.usage = changes.usage.newValue;
-  //       break;
-  //     case 'npcs':
-  //       npcs = changes.npcs.newValue;
-  //       break;
-  //   }
-  //   if (storageListeners[key])
-  //     storageListeners[key].forEach(listener =>
-  //       listener(changes[key].oldValue)
-  //     );
-  // }
+  for (const key in changes) {
+    if (!isStorageKey(key)) {
+      // We only want to handle known storage keys
+      continue;
+    }
+
+    currentStorage[key] = changes[key].newValue;
+
+    const storageEntryListeners = storageListeners[key];
+
+    if (storageEntryListeners) {
+      storageEntryListeners.forEach(listener =>
+        listener(changes[key].oldValue, changes[key].newValue)
+      );
+    }
+  }
 });

@@ -1,4 +1,8 @@
-import { FeatureHandler, Feature } from '../common/feature-manager/feature';
+import {
+  FeatureHandler,
+  Feature,
+  SettingItemsChanges
+} from '../common/feature-manager/feature';
 
 interface FeatureOneStorageItems {
   myCompanyLastAction: boolean;
@@ -7,8 +11,8 @@ interface FeatureOneStorageItems {
 @Feature({
   id: 'feature-one',
   description: 'Feature one',
-  storageReloadConnection: (storage): FeatureOneStorageItems => ({
-    myCompanyLastAction: storage.settings.pages.company.myCompanyLastAction
+  storageReloadConnection: (settings): FeatureOneStorageItems => ({
+    myCompanyLastAction: settings.pages.company.myCompanyLastAction
   })
 })
 export class FeatureOne implements FeatureHandler<FeatureOneStorageItems> {
@@ -20,8 +24,15 @@ export class FeatureOne implements FeatureHandler<FeatureOneStorageItems> {
     console.log(settingsItems);
   }
 
-  storageConnectionChanged(settingsItems: FeatureOneStorageItems): void {
-    console.log(settingsItems);
+  storageConnectionChanged(
+    settingsItemsChanges: SettingItemsChanges<FeatureOneStorageItems>
+  ): void {
+    // if (settingsItemsChanges.myCompanyLastAction) {
+    //   const myCompanyLastAction = settingsItemsChanges.myCompanyLastAction.currentValue;
+    //   // Handle change
+    // }
+
+    console.log(settingsItemsChanges);
   }
 
   featureBecameInactive(): void {
