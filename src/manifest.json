@@ -10,6 +10,8 @@
     "scripts": ["scripts/background.js"]
   },
   "content_scripts": [
+    // IMPORTANT: This MUST be first as the exclude matches is being built
+    // dynamically by webpack based on all entries except first (manifest-post-process.js)
     {
       "matches": ["https://www.torn.com/*.php*"],
       "js": ["scripts/all-pages.js"],
@@ -21,5 +23,5 @@
       "run_at": "document_end"
     }
   ],
-  "web_accessible_resources": ["scripts/background.js", "scripts/company.js"]
+  "web_accessible_resources": []
 }

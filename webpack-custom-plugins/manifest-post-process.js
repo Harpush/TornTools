@@ -1,10 +1,14 @@
+const stripJsonComments = require('strip-json-comments');
+
 class ManifestPostProcessPlugin {
   apply(compiler) {
     compiler.hooks.emit.tapAsync(
       'ManifestPostProcessPlugin',
       (compilation, callback) => {
         const manifestJson = JSON.parse(
-          compilation.assets['manifest.json'].source()
+          stripJsonComments(
+            compilation.assets['manifest.json'].source().toString()
+          )
         );
 
         const otherMatches = manifestJson.content_scripts
