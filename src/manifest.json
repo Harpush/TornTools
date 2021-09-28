@@ -11,6 +11,11 @@
   },
   "content_scripts": [
     {
+      "matches": ["https://www.torn.com/*.php*"],
+      "js": ["scripts/all-pages.js"],
+      "run_at": "document_end"
+    },
+    {
       "matches": ["https://www.torn.com/companies.php*"],
       "js": ["scripts/company.js"],
       "run_at": "document_end"

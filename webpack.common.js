@@ -1,9 +1,11 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ManifestPostProcessPlugin = require('./webpack-custom-plugins/manifest-post-process');
 
 module.exports = {
   entry: {
     // All pages index.ts here
+    'all-pages': './src/pages/all-pages/index.ts',
     company: './src/pages/company/index.ts',
     background: './src/background.ts'
   },
@@ -20,7 +22,9 @@ module.exports = {
     // Copies files as is to dist
     new CopyWebpackPlugin({
       patterns: [{ from: './src/manifest.json' }]
-    })
+    }),
+    // Alters manifest json dynamically
+    new ManifestPostProcessPlugin()
   ],
   module: {
     rules: [
