@@ -111,7 +111,7 @@ export const bootstrapFeatures = async (
       }
 
       if (!Object.keys(changes).length) {
-        // If not change there is nothing to do in this feature
+        // If no change - there is nothing to do in this feature
         continue;
       }
 
@@ -166,6 +166,7 @@ export const bootstrapFeatures = async (
       }
 
       featureInfo.featureInstance.featureBecameInactive();
+      featureInfo.isActive = false;
       featuresPopup.updateFeatureStatus(featureInfo.id, 'inactive');
 
       log(
