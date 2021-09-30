@@ -1,5 +1,8 @@
 const stripJsonComments = require('strip-json-comments');
 
+const manifestSrcName = 'manifest.jsonc';
+const manifestDistName = 'manifest.json';
+
 class ManifestPostProcessPlugin {
   apply(compiler) {
     compiler.hooks.emit.tapAsync(
@@ -7,7 +10,7 @@ class ManifestPostProcessPlugin {
       (compilation, callback) => {
         const manifestJson = JSON.parse(
           stripJsonComments(
-            compilation.assets['manifest.jsonc'].source().toString()
+            compilation.assets[manifestSrcName].source().toString()
           )
         );
 
@@ -22,9 +25,9 @@ class ManifestPostProcessPlugin {
 
         const newManifestJson = JSON.stringify(manifestJson, null, 2);
 
-        delete compilation.assets['manifest.jsonc'];
+        delete compilation.assets[manifestSrcName];
 
-        compilation.assets['manifest.json'] = {
+        compilation.assets[manifestDistName] = {
           source: () => newManifestJson,
           size: () => newManifestJson.length
         };

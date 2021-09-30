@@ -4,7 +4,7 @@ const ManifestPostProcessPlugin = require('./webpack-custom-plugins/manifest-pos
 
 module.exports = {
   entry: {
-    // All pages index.ts here
+    // Each page's index.ts should be listed here
     'all-pages': './src/pages/all-pages/index.ts',
     company: './src/pages/company/index.ts',
     background: './src/background.ts'

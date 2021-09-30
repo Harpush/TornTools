@@ -20,7 +20,7 @@ interface FeatureInfo {
     storage: StorageModel[StorageKey.Settings]
   ) => Record<string, any>;
   featureInstance: FeatureHandler<Record<string, any>>;
-  isInitialized: boolean;
+  isActive: boolean;
 }
 
 /**
@@ -54,7 +54,7 @@ export const bootstrapFeatures = async (
       description: featureConfig.description,
       storageReloadConnection: featureConfig.storageReloadConnection,
       featureInstance,
-      isInitialized: false
+      isActive: false
     });
 
     featuresPopup.addFeature(featureConfig.id, featureConfig.description);
@@ -76,8 +76,8 @@ export const bootstrapFeatures = async (
     );
 
     if (isActive) {
-      featureInstance.firstLoad(featureStorageOptions);
-      featuresInfoMap.get(featureConfig.id)!.isInitialized = true;
+      featureInstance.featureBecameActive(featureStorageOptions);
+      featuresInfoMap.get(featureConfig.id)!.isActive = true;
       featuresPopup.updateFeatureStatus(featureConfig.id, 'active');
 
       log(
@@ -115,32 +115,36 @@ export const bootstrapFeatures = async (
         continue;
       }
 
-      const isActive = featureInfo.featureInstance.isFeatureActiveFromStorage(
-        newFeatureStorageOptions
-      );
+      const isBecomingActive =
+        featureInfo.featureInstance.isFeatureActiveFromStorage(
+          newFeatureStorageOptions
+        );
 
-      if (isActive) {
+      if (isBecomingActive && !featureInfo.isActive) {
+        featureInfo.featureInstance.featureBecameActive(
+          newFeatureStorageOptions
+        );
+        featureInfo.isActive = true;
+        featuresPopup.updateFeatureStatus(featureInfo.id, 'active');
+
+        log(
+          '[TornTools] FeatureManager - Feature reinitialized from storage',
+          featureInfo.id,
+          featureInfo.description
+        );
+      } else if (isBecomingActive && featureInfo.isActive) {
         featureInfo.featureInstance.storageConnectionChanged(changes);
+        featureInfo.isActive = true;
+        featuresPopup.updateFeatureStatus(featureInfo.id, 'active');
 
-        if (!featureInfo.isInitialized) {
-          featureInfo.isInitialized = true;
-          featuresPopup.updateFeatureStatus(featureInfo.id, 'active');
-
-          log(
-            '[TornTools] FeatureManager - Feature reinitialized from storage',
-            featureInfo.id,
-            featureInfo.description
-          );
-        } else {
-          log(
-            '[TornTools] FeatureManager - Feature updated from storage',
-            featureInfo.id,
-            featureInfo.description
-          );
-        }
-      } else if (featureInfo.isInitialized) {
+        log(
+          '[TornTools] FeatureManager - Feature updated from storage',
+          featureInfo.id,
+          featureInfo.description
+        );
+      } else if (!isBecomingActive && featureInfo.isActive) {
         featureInfo.featureInstance.featureBecameInactive();
-        featureInfo.isInitialized = false;
+        featureInfo.isActive = false;
         featuresPopup.updateFeatureStatus(featureInfo.id, 'inactive');
 
         log(
@@ -157,7 +161,7 @@ export const bootstrapFeatures = async (
     const featuresInfo = Array.from(featuresInfoMap.values());
 
     for (const featureInfo of featuresInfo) {
-      if (!featureInfo.isInitialized) {
+      if (!featureInfo.isActive) {
         continue;
       }
 

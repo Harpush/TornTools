@@ -17,18 +17,20 @@ export interface FeatureHandler<T extends Record<string, any>> {
    */
   isFeatureActiveFromStorage(settingsItems: T): boolean;
   /**
-   * Called only once at feature startup
+   * Called whenever the feature is becoming active
+   * Either first time or after deactivate and later reactivate
    * TODO: Needed or only storageConnectionChanged?
    */
-  firstLoad(settingsItems: T): void;
+  featureBecameActive(settingsItems: T): void;
   /**
    * Called on every changed in settingsItems which didn't
-   * result in feature deactivate
+   * result in feature deactivate or reactivate
    */
   // TODO: Pass changes object instead ({changedKey: {oldValue, newValue}})
   storageConnectionChanged(settingsItemsChanges: SettingItemsChanges<T>): void;
   /**
    * Cleanup logic when the feature became inactive
+   * TODO: Needed or only storageConnectionChanged?
    */
   featureBecameInactive(): void;
 }
@@ -50,7 +52,7 @@ export interface FeatureConfig<T extends Record<string, any>> {
    * Will be used to check for changes using values reference check
    * Should be a simple json object - {...}
    */
-  storageReloadConnection: (storage: StorageModel[StorageKey.Settings]) => T;
+  storageReloadConnection: (settings: StorageModel[StorageKey.Settings]) => T;
 }
 
 /**
