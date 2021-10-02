@@ -21,7 +21,21 @@ module.exports = {
   plugins: [
     // Copies files as is to dist
     new CopyWebpackPlugin({
-      patterns: [{ from: './src/manifest.jsonc' }]
+      patterns: [
+        // Copy manifest
+        { from: './src/manifest.jsonc' },
+        // Copy font awesome fonts
+        {
+          from: './node_modules/@fortawesome/fontawesome-free/webfonts',
+          to: './webfonts'
+        },
+        // Copy font awesome all css with file rename
+        {
+          from: './node_modules/@fortawesome/fontawesome-free/css/all.min.css',
+          to: 'font-awesome.css',
+          toType: 'template'
+        }
+      ]
     }),
     // Alters manifest json dynamically and strip comments
     new ManifestPostProcessPlugin()

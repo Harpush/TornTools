@@ -13,6 +13,7 @@
   "bugs": {},
   "homepage": "",
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.4",
     "@types/chrome": "0.0.158",
     "@types/node": "^16.10.1",
     "copy-webpack-plugin": "^9.0.1",
@@ -28,6 +29,5 @@
     "webpack": "^5.54.0",
     "webpack-cli": "^4.8.0",
     "webpack-merge": "^5.8.0"
-  },
-  "dependencies": {}
+  }
 }

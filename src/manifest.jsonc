@@ -9,6 +9,7 @@
   "background": {
     "scripts": ["scripts/background.js"]
   },
+  "web_accessible_resources": ["font-awesome.css", "webfonts/*"],
   "content_scripts": [
     // IMPORTANT: This MUST be first as the exclude matches is being built
     // dynamically by webpack based on all entries except first (manifest-post-process.js)
